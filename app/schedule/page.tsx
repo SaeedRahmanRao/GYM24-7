@@ -18,7 +18,6 @@ interface Schedule {
   max_capacity: number
   current_bookings: number
   location: string
-  class_type: string
   status: string
   created_at: string
 }
