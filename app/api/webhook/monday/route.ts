@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/server"
+import { SupabaseClient } from "@supabase/supabase-js"
 
 interface MondayWebhookPayload {
   type: "create_pulse" | "update_column_value"
@@ -29,10 +30,27 @@ interface MondayWebhookPayload {
     phone?: string
     numbers?: string
   }
-  previousValue?: any
+  previousValue?: unknown
   changedAt: number
   isTopGroup: boolean
   groupId: string
+}
+
+interface MemberUpdateData {
+  email?: string
+  phone?: string
+  status?: string
+  name?: string
+  updated_at: string
+}
+
+interface ContractUpdateData {
+  start_date?: string
+  end_date?: string
+  monthly_fee?: number
+  status?: string
+  contract_type?: string
+  updated_at: string
 }
 
 export async function POST(request: NextRequest) {
@@ -74,7 +92,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handlePulseCreation(supabase: any, payload: MondayWebhookPayload) {
+async function handlePulseCreation(supabase: SupabaseClient, payload: MondayWebhookPayload) {
   console.log("[v0] Handling pulse creation for:", payload.pulseName)
 
   // You'll need to configure these board IDs based on your Monday.com setup
@@ -110,7 +128,7 @@ async function handlePulseCreation(supabase: any, payload: MondayWebhookPayload)
   }
 }
 
-async function handleColumnUpdate(supabase: any, payload: MondayWebhookPayload) {
+async function handleColumnUpdate(supabase: SupabaseClient, payload: MondayWebhookPayload) {
   console.log("[v0] Handling column update for pulse:", payload.pulseId)
 
   const MEMBERS_BOARD_ID = 123456789 // Replace with actual member board ID
@@ -123,9 +141,9 @@ async function handleColumnUpdate(supabase: any, payload: MondayWebhookPayload) 
   }
 }
 
-async function handleMemberColumnUpdate(supabase: any, payload: MondayWebhookPayload) {
+async function handleMemberColumnUpdate(supabase: SupabaseClient, payload: MondayWebhookPayload) {
   const mondayMemberId = payload.pulseId.toString()
-  const updateData: any = { updated_at: new Date().toISOString() }
+  const updateData: MemberUpdateData = { updated_at: new Date().toISOString() }
 
   switch (payload.columnId) {
     case "email":
@@ -163,9 +181,9 @@ async function handleMemberColumnUpdate(supabase: any, payload: MondayWebhookPay
   }
 }
 
-async function handleContractColumnUpdate(supabase: any, payload: MondayWebhookPayload) {
+async function handleContractColumnUpdate(supabase: SupabaseClient, payload: MondayWebhookPayload) {
   const mondayContractId = payload.pulseId.toString()
-  const updateData: any = { updated_at: new Date().toISOString() }
+  const updateData: ContractUpdateData = { updated_at: new Date().toISOString() }
 
   switch (payload.columnId) {
     case "member":

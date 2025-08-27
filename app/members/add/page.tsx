@@ -1,35 +1,35 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { createClient } from "@/lib/client"
-import { useRouter } from "next/navigation"
-import { Users, Save, X } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Textarea } from "@/components/ui/textarea"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
-
+import { Plus } from "lucide-react"
+import Link from "next/link"
 
 export default function AddMemberPage() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const router = useRouter()
-
+  const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phone: "",
+    date_of_birth: "",
+    gender: "",
+    address: "",
+    emergency_contact: "",
+    membership_type: "",
     status: "active",
+    notes: ""
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
+    setSubmitting(true)
 
     try {
       const response = await fetch("/api/members", {
@@ -40,138 +40,218 @@ export default function AddMemberPage() {
         body: JSON.stringify(formData),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create member")
+      if (response.ok) {
+        alert("Member created successfully!")
+        setFormData({
+          first_name: "",
+          last_name: "",
+          email: "",
+          phone: "",
+          date_of_birth: "",
+          gender: "",
+          address: "",
+          emergency_contact: "",
+          membership_type: "",
+          status: "active",
+          notes: ""
+        })
+      } else {
+        const error = await response.json()
+        alert(`Error: ${error.error}`)
       }
-
-      setSuccess(true)
-      setTimeout(() => {
-        router.push("/members")
-      }, 2000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+    } catch (error) {
+      console.error("Error creating member:", error)
+      alert("Error creating member")
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: value
     }))
   }
 
   return (
     <AuthenticatedLayout 
       title="Add New Member"
-      showBackButton={true}
+      showBackButton
       backHref="/members"
+      headerActions={
+        <Button asChild>
+          <Link href="/members">
+            <Plus className="mr-2 h-4 w-4" />
+            View All Members
+          </Link>
+        </Button>
+      }
     >
-      <div className="space-y-6 p-6">
-            <div className="max-w-2xl mx-auto">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    New Member Information
-                  </CardTitle>
-                  <CardDescription>
-                    Enter the details for the new gym member. All fields marked with * are required.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {error && (
-                    <Alert className="mb-6 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
-                      <X className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Member</CardTitle>
+            <CardDescription>
+              Add a new member to the gym
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name">First Name</Label>
+                  <Input
+                    id="first_name"
+                    value={formData.first_name}
+                    onChange={(e) => handleInputChange("first_name", e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="last_name">Last Name</Label>
+                  <Input
+                    id="last_name"
+                    value={formData.last_name}
+                    onChange={(e) => handleInputChange("last_name", e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
 
-                  {success && (
-                    <Alert className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-                      <Save className="h-4 w-4" />
-                      <AlertDescription>Member created successfully! Redirecting...</AlertDescription>
-                    </Alert>
-                  )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          id="name"
-                          type="text"
-                          placeholder="John Doe"
-                          value={formData.name}
-                          onChange={(e) => handleInputChange("name", e.target.value)}
-                          required
-                        />
-                      </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date_of_birth">Date of Birth</Label>
+                  <Input
+                    id="date_of_birth"
+                    type="date"
+                    value={formData.date_of_birth}
+                    onChange={(e) => handleInputChange("date_of_birth", e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select
+                    value={formData.gender}
+                    onValueChange={(value) => handleInputChange("gender", value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="john.doe@example.com"
-                          value={formData.email}
-                          onChange={(e) => handleInputChange("email", e.target.value)}
-                        />
-                      </div>
-                    </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Textarea
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  rows={2}
+                />
+              </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          placeholder="+1 (555) 123-4567"
-                          value={formData.phone}
-                          onChange={(e) => handleInputChange("phone", e.target.value)}
-                        />
-                      </div>
+              <div className="space-y-2">
+                <Label htmlFor="emergency_contact">Emergency Contact</Label>
+                <Input
+                  id="emergency_contact"
+                  value={formData.emergency_contact}
+                  onChange={(e) => handleInputChange("emergency_contact", e.target.value)}
+                />
+              </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="status">Status</Label>
-                        <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="membership_type">Membership Type</Label>
+                  <Select
+                    value={formData.membership_type}
+                    onValueChange={(value) => handleInputChange("membership_type", value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select membership type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="basic">Basic</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="vip">VIP</SelectItem>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="senior">Senior</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => handleInputChange("status", value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-                    <div className="flex gap-4 pt-4">
-                      <Button type="submit" disabled={loading || success}>
-                        {loading ? (
-                          <>
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                            Creating...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="h-4 w-4 mr-2" />
-                            Create Member
-                          </>
-                        )}
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => router.push("/members")}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Additional notes about the member..."
+                  value={formData.notes}
+                  onChange={(e) => handleInputChange("notes", e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <Button type="submit" disabled={submitting} className="flex-1">
+                  {submitting ? "Creating..." : "Create Member"}
+                </Button>
+                <Button type="button" variant="outline" asChild>
+                  <Link href="/members">Cancel</Link>
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </AuthenticatedLayout>
   )
