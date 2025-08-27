@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/server"
 
 export async function GET() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     // Get counts for all tables
