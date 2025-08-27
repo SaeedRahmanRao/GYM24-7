@@ -12,7 +12,7 @@ interface Schedule {
   id: string
   class_name: string
   instructor: string
-  class_date: string
+  class_type: string
   start_time: string
   end_time: string
   max_capacity: number
@@ -35,8 +35,10 @@ export default function SchedulePage() {
     try {
       const response = await fetch("/api/schedule")
       if (response.ok) {
-        const data = await response.json()
-        setSchedule(data)
+        const result = await response.json()
+        // Handle the nested data structure from the API
+        const schedule = result.success ? result.data : []
+        setSchedule(schedule)
       }
     } catch (error) {
       console.error("Error fetching schedule:", error)
@@ -95,7 +97,7 @@ export default function SchedulePage() {
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -118,58 +120,49 @@ export default function SchedulePage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6">
+          <div className="grid gap-4">
             {schedule.map((classItem) => (
-              <Card key={classItem.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5" />
-                        {classItem.class_name}
-                      </CardTitle>
-                      <CardDescription>
-                        {classItem.class_type} • {classItem.instructor}
-                      </CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge className={getStatusColor(classItem.status)}>
-                        {classItem.status}
-                      </Badge>
-                      <Badge className={getAvailabilityColor(classItem.current_bookings, classItem.max_capacity)}>
-                        {getAvailabilityStatus(classItem.current_bookings, classItem.max_capacity)}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Date:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(classItem.class_date)}
+              <Card key={classItem.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       </div>
                     </div>
-                    <div>
-                      <span className="font-medium">Time:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        {formatTime(classItem.start_time)} - {formatTime(classItem.end_time)}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-sm truncate">{classItem.class_name}</h3>
+                        <Badge className={getStatusColor(classItem.status)} variant="secondary">
+                          {classItem.status}
+                        </Badge>
+                        <Badge className={getAvailabilityColor(classItem.current_bookings || 0, classItem.max_capacity)} variant="secondary">
+                          {getAvailabilityStatus(classItem.current_bookings || 0, classItem.max_capacity)}
+                        </Badge>
                       </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Capacity:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        {classItem.current_bookings}/{classItem.max_capacity}
+                      
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                        <span className="font-medium">{classItem.instructor}</span>
+                        <span>•</span>
+                        <span className="capitalize">{classItem.class_type}</span>
                       </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Location:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        {classItem.location}
+                      
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{formatTime(classItem.start_time)} - {formatTime(classItem.end_time)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          <span>{classItem.current_bookings || 0}/{classItem.max_capacity}</span>
+                        </div>
+                        {classItem.location && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            <span>{classItem.location}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

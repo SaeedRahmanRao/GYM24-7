@@ -40,8 +40,10 @@ export default function AddContractPage() {
     try {
       const response = await fetch("/api/members")
       if (response.ok) {
-        const data = await response.json()
-        setMembers(data)
+        const result = await response.json()
+        // Handle the nested data structure from the API
+        const members = result.success ? result.data : []
+        setMembers(members)
       }
     } catch (error) {
       console.error("Error fetching members:", error)

@@ -4,36 +4,57 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
-import { Plus, FileText, Calendar, DollarSign } from "lucide-react"
+import { Plus, FileText, Calendar, DollarSign, User, Search } from "lucide-react"
 import Link from "next/link"
 
 interface Contract {
   id: string
   member_id: string
-  member_name: string
   contract_type: string
   start_date: string
   end_date: string
   monthly_fee: number
   status: string
   created_at: string
+  members?: {
+    id: string
+    name: string
+    email: string
+    status: string
+  }
 }
 
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>([])
+  const [filteredContracts, setFilteredContracts] = useState<Contract[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     fetchContracts()
   }, [])
 
+  useEffect(() => {
+    // Filter contracts based on search term
+    const filtered = contracts.filter(contract =>
+      contract.contract_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.members?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contract.status.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    setFilteredContracts(filtered)
+  }, [searchTerm, contracts])
+
   const fetchContracts = async () => {
     try {
       const response = await fetch("/api/contracts")
       if (response.ok) {
-        const data = await response.json()
-        setContracts(data)
+        const result = await response.json()
+        // Handle the nested data structure from the API
+        const contracts = result.success ? result.data : []
+        setContracts(contracts)
+        setFilteredContracts(contracts)
       }
     } catch (error) {
       console.error("Error fetching contracts:", error)
@@ -78,7 +99,18 @@ export default function ContractsPage() {
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search contracts by type, member name, or status..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -86,67 +118,65 @@ export default function ContractsPage() {
               <p className="text-muted-foreground">Loading contracts...</p>
             </div>
           </div>
-        ) : contracts.length === 0 ? (
+        ) : filteredContracts.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No contracts found</h3>
-              <p className="text-muted-foreground mb-4">Get started by creating your first contract.</p>
-              <Button asChild>
-                <Link href="/contracts/add">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Contract
-                </Link>
-              </Button>
+              <h3 className="text-lg font-semibold mb-2">
+                {searchTerm ? "No contracts found" : "No contracts found"}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm 
+                  ? `No contracts match "${searchTerm}". Try a different search term.`
+                  : "Get started by creating your first contract."
+                }
+              </p>
+              {!searchTerm && (
+                <Button asChild>
+                  <Link href="/contracts/add">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Contract
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6">
-            {contracts.map((contract) => (
-              <Card key={contract.id}>
-                <CardHeader>
+          <div className="grid gap-4">
+            {filteredContracts.map((contract) => (
+              <Card key={contract.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        {contract.contract_type}
-                      </CardTitle>
-                      <CardDescription>
-                        Member: {contract.member_name}
-                      </CardDescription>
-                    </div>
-                    <Badge className={getStatusColor(contract.status)}>
-                      {contract.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Start Date:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(contract.start_date)}
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <FileText className="h-5 w-5 text-primary" />
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">End Date:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(contract.end_date)}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Monthly Fee:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <DollarSign className="h-4 w-4" />
-                        {formatCurrency(contract.monthly_fee)}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Created:</span>
-                      <div className="text-muted-foreground">
-                        {formatDate(contract.created_at)}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-sm truncate">{contract.contract_type}</h3>
+                          <Badge className={getStatusColor(contract.status)} variant="secondary">
+                            {contract.status}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                          <User className="h-3 w-3" />
+                          <span>{contract.members?.name || 'Unknown Member'}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{formatDate(contract.start_date)} - {formatDate(contract.end_date)}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            <span>{formatCurrency(contract.monthly_fee)}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

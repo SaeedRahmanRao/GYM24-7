@@ -32,12 +32,20 @@ export default function AddMemberPage() {
     setSubmitting(true)
 
     try {
+      // Combine first_name and last_name into name field
+      const memberData = {
+        name: `${formData.first_name} ${formData.last_name}`.trim(),
+        email: formData.email,
+        phone: formData.phone,
+        status: formData.status
+      }
+
       const response = await fetch("/api/members", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(memberData),
       })
 
       if (response.ok) {

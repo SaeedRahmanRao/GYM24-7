@@ -4,37 +4,49 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
-import { Plus, Users, Calendar, Phone, Mail } from "lucide-react"
+import { Plus, Users, Mail, Phone, Calendar, Search } from "lucide-react"
 import Link from "next/link"
 
 interface Member {
   id: string
-  first_name: string
-  last_name: string
+  name: string
   email: string
   phone: string
-  date_of_birth: string
-  gender: string
-  membership_type: string
   status: string
   created_at: string
 }
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([])
+  const [filteredMembers, setFilteredMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     fetchMembers()
   }, [])
 
+  useEffect(() => {
+    // Filter members based on search term
+    const filtered = members.filter(member =>
+      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.phone.includes(searchTerm)
+    )
+    setFilteredMembers(filtered)
+  }, [searchTerm, members])
+
   const fetchMembers = async () => {
     try {
       const response = await fetch("/api/members")
       if (response.ok) {
-        const data = await response.json()
-        setMembers(data)
+        const result = await response.json()
+        // Handle the nested data structure from the API
+        const members = result.success ? result.data : []
+        setMembers(members)
+        setFilteredMembers(members)
       }
     } catch (error) {
       console.error("Error fetching members:", error)
@@ -60,17 +72,13 @@ export default function MembersPage() {
     return new Date(dateString).toLocaleDateString()
   }
 
-  const calculateAge = (dateOfBirth: string) => {
-    const today = new Date()
-    const birthDate = new Date(dateOfBirth)
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    
-    return age
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
   }
 
   return (
@@ -87,7 +95,18 @@ export default function MembersPage() {
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search members by name, email, or phone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -95,67 +114,64 @@ export default function MembersPage() {
               <p className="text-muted-foreground">Loading members...</p>
             </div>
           </div>
-        ) : members.length === 0 ? (
+        ) : filteredMembers.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No members found</h3>
-              <p className="text-muted-foreground mb-4">Get started by adding your first member.</p>
-              <Button asChild>
-                <Link href="/members/add">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Member
-                </Link>
-              </Button>
+              <h3 className="text-lg font-semibold mb-2">
+                {searchTerm ? "No members found" : "No members found"}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm 
+                  ? `No members match "${searchTerm}". Try a different search term.`
+                  : "Get started by adding your first member."
+                }
+              </p>
+              {!searchTerm && (
+                <Button asChild>
+                  <Link href="/members/add">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Member
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6">
-            {members.map((member) => (
-              <Card key={member.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        {member.first_name} {member.last_name}
-                      </CardTitle>
-                      <CardDescription>
-                        {member.membership_type} • {member.gender}
-                      </CardDescription>
-                    </div>
-                    <Badge className={getStatusColor(member.status)}>
-                      {member.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Email:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Mail className="h-4 w-4" />
-                        {member.email}
+          <div className="grid gap-4">
+            {filteredMembers.map((member) => (
+              <Card key={member.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <span className="text-sm font-semibold text-primary">
+                          {getInitials(member.name)}
+                        </span>
                       </div>
                     </div>
-                    <div>
-                      <span className="font-medium">Phone:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Phone className="h-4 w-4" />
-                        {member.phone}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-sm truncate">{member.name}</h3>
+                        <Badge className={getStatusColor(member.status)} variant="secondary">
+                          {member.status}
+                        </Badge>
                       </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Age:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {calculateAge(member.date_of_birth)} years
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Joined:</span>
-                      <div className="text-muted-foreground">
-                        {formatDate(member.created_at)}
+                      
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          <span className="truncate">{member.email}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          <span>{member.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Joined {formatDate(member.created_at)}</span>
+                        </div>
                       </div>
                     </div>
                   </div>

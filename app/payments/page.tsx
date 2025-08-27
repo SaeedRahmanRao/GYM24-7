@@ -5,19 +5,30 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
-import { Plus, DollarSign, Calendar, CreditCard, Activity } from "lucide-react"
+import { Plus, DollarSign, CreditCard, Activity, Calendar, User } from "lucide-react"
 import Link from "next/link"
 
 interface Payment {
   id: string
+  contract_id: string
   member_id: string
-  member_name: string
   amount: number
-  payment_method: string
   payment_date: string
+  payment_method: string
   status: string
-  description: string
+  transaction_id: string
+  notes: string
   created_at: string
+  members?: {
+    id: string
+    name: string
+    email: string
+  }
+  contracts?: {
+    id: string
+    contract_type: string
+    monthly_fee: number
+  }
 }
 
 export default function PaymentsPage() {
@@ -32,8 +43,10 @@ export default function PaymentsPage() {
     try {
       const response = await fetch("/api/payments")
       if (response.ok) {
-        const data = await response.json()
-        setPayments(data)
+        const result = await response.json()
+        // Handle the nested data structure from the API
+        const payments = result.success ? result.data : []
+        setPayments(payments)
       }
     } catch (error) {
       console.error("Error fetching payments:", error)
@@ -69,13 +82,13 @@ export default function PaymentsPage() {
   const getPaymentMethodIcon = (method: string) => {
     switch (method.toLowerCase()) {
       case "credit_card":
-        return <CreditCard className="h-4 w-4" />
+        return <CreditCard className="h-3 w-3" />
       case "cash":
-        return <DollarSign className="h-4 w-4" />
+        return <DollarSign className="h-3 w-3" />
       case "bank_transfer":
-        return <Activity className="h-4 w-4" />
+        return <Activity className="h-3 w-3" />
       default:
-        return <DollarSign className="h-4 w-4" />
+        return <DollarSign className="h-3 w-3" />
     }
   }
 
@@ -93,7 +106,7 @@ export default function PaymentsPage() {
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -116,52 +129,46 @@ export default function PaymentsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6">
+          <div className="grid gap-4">
             {payments.map((payment) => (
-              <Card key={payment.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <DollarSign className="h-5 w-5" />
-                        {payment.member_name}
-                      </CardTitle>
-                      <CardDescription>
-                        {payment.description}
-                      </CardDescription>
-                    </div>
-                    <Badge className={getStatusColor(payment.status)}>
-                      {payment.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Amount:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <DollarSign className="h-4 w-4" />
-                        {formatCurrency(payment.amount)}
+              <Card key={payment.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                        <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
                       </div>
                     </div>
-                    <div>
-                      <span className="font-medium">Payment Method:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        {getPaymentMethodIcon(payment.payment_method)}
-                        {payment.payment_method.replace('_', ' ')}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-sm">{formatCurrency(payment.amount)}</h3>
+                        <Badge className={getStatusColor(payment.status)} variant="secondary">
+                          {payment.status}
+                        </Badge>
                       </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Payment Date:</span>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(payment.payment_date)}
+                      
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                        <User className="h-3 w-3" />
+                        <span>{payment.members?.name || 'Unknown Member'}</span>
+                        <span>•</span>
+                        <span>{payment.contracts?.contract_type || 'Unknown Contract'}</span>
                       </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Recorded:</span>
-                      <div className="text-muted-foreground">
-                        {formatDate(payment.created_at)}
+                      
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{formatDate(payment.payment_date)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {getPaymentMethodIcon(payment.payment_method)}
+                          <span className="capitalize">{payment.payment_method.replace('_', ' ')}</span>
+                        </div>
+                        {payment.transaction_id && (
+                          <div className="text-xs text-muted-foreground">
+                            ID: {payment.transaction_id.slice(0, 8)}...
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
