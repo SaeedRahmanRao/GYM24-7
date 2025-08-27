@@ -5,11 +5,18 @@ import { createClient } from "@/lib/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Users, FileText, TrendingUp, Activity } from "lucide-react"
 
+interface User {
+  id: string
+  email?: string
+  user_metadata?: {
+    name?: string
+  }
+}
+
 export default function ProtectedPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
