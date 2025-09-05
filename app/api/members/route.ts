@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`)
+      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,first_name.ilike.%${search}%,paternal_last_name.ilike.%${search}%`)
     }
 
     query = query.range(offset, offset + limit - 1)
@@ -59,24 +59,91 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const body = await request.json()
 
-    const { name, email, phone, status = "active" } = body
+    const {
+      name,
+      person,
+      status = "active",
+      start_date,
+      paternal_last_name,
+      maternal_last_name,
+      first_name,
+      date_of_birth,
+      email,
+      primary_phone,
+      address_1,
+      access_type,
+      city,
+      state,
+      zip_code,
+      secondary_phone,
+      emergency_contact_name,
+      emergency_contact_phone,
+      referred_member,
+      selected_plan,
+      employee = "",
+      member_id,
+      monthly_amount,
+      expiration_date,
+      direct_debit = "No domiciliado",
+      how_did_you_hear,
+      contract_link,
+      version = "1.0"
+    } = body
 
-    if (!name) {
-      return NextResponse.json({ success: false, error: "Name is required" }, { status: 400 })
+    if (!name && (!first_name || !paternal_last_name)) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Either name or both first_name and paternal_last_name are required" 
+      }, { status: 400 })
+    }
+
+    if (!email) {
+      return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 })
+    }
+
+    if (!primary_phone) {
+      return NextResponse.json({ success: false, error: "Primary phone is required" }, { status: 400 })
     }
 
     // Generate a unique Monday.com member ID (in real scenario, this would come from Monday.com)
     const mondayMemberId = `member_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
+    // Prepare the member data with all fields
+    const memberData = {
+      monday_member_id: mondayMemberId,
+      name: name || `${first_name} ${paternal_last_name}`.trim(),
+      person,
+      status,
+      start_date: start_date || null,
+      paternal_last_name,
+      maternal_last_name,
+      first_name,
+      date_of_birth: date_of_birth || null,
+      email,
+      primary_phone,
+      address_1,
+      access_type,
+      city,
+      state,
+      zip_code,
+      secondary_phone,
+      emergency_contact_name,
+      emergency_contact_phone,
+      referred_member,
+      selected_plan,
+      employee,
+      member_id,
+      monthly_amount: monthly_amount ? parseFloat(monthly_amount) : null,
+      expiration_date: expiration_date || null,
+      direct_debit,
+      how_did_you_hear,
+      contract_link,
+      version
+    }
+
     const { data: member, error } = await supabase
       .from("members")
-      .insert({
-        monday_member_id: mondayMemberId,
-        name,
-        email,
-        phone,
-        status,
-      })
+      .insert(memberData)
       .select()
       .single()
 
