@@ -134,12 +134,12 @@ export async function processWebhookPayload(payload: Record<string, unknown>): P
   try {
     console.log('[STUB] Processing webhook payload:', payload)
     
-    // Extract payment information from stub payload
-    const paymentReference = payload.payment_reference || payload.reference
-    const fiservPaymentId = payload.fiserv_payment_id || payload.payment_id
-    const status = payload.status || payload.payment_status
+    // Extract payment information from stub payload with proper type checking
+    const paymentReference = (payload.payment_reference || payload.reference) as string
+    const fiservPaymentId = (payload.fiserv_payment_id || payload.payment_id) as string
+    const status = (payload.status || payload.payment_status) as string
     const paidDate = payload.paid_date && typeof payload.paid_date === 'string' ? new Date(payload.paid_date) : new Date()
-    const externalReference = payload.external_reference || payload.transaction_id
+    const externalReference = (payload.external_reference || payload.transaction_id) as string
 
     if (!paymentReference || !fiservPaymentId || !status) {
       throw new Error('Missing required payment fields in webhook payload')
