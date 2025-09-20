@@ -6,10 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
-import { Plus, User, Phone, MapPin, Calendar, CreditCard, FileText } from "lucide-react"
+import { Plus, User, Phone, MapPin, FileText } from "lucide-react"
 import Link from "next/link"
 
 export default function AddMemberPage() {

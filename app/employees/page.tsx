@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
-import { Plus, Users, Mail, Phone, Calendar, Search, MapPin, CreditCard, User, Briefcase, Key } from "lucide-react"
+import { Plus, Users, Mail, Phone, Calendar, Search, MapPin, CreditCard, Briefcase, Key } from "lucide-react"
 import Link from "next/link"
 
 interface Employee {
