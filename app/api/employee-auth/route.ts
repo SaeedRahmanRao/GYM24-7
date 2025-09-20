@@ -2,6 +2,25 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/server"
 import bcrypt from "bcryptjs"
 
+interface EmployeeData {
+  id: string
+  name: string
+  email: string
+  position: string
+  department: string
+  access_level: string
+}
+
+interface LoginCredentials {
+  id: string
+  username: string
+  password_hash: string
+  employee_type: string
+  is_active: boolean
+  last_login: string | null
+  employees: EmployeeData
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -37,7 +56,7 @@ export async function POST(request: NextRequest) {
       `)
       .eq("username", username)
       .eq("is_active", true)
-      .single()
+      .single() as { data: LoginCredentials | null; error: any }
 
     if (error || !loginCredentials) {
       return NextResponse.json({ 
