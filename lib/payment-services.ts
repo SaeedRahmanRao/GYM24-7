@@ -29,7 +29,7 @@ export interface PaymentStatusUpdate {
   status: 'paid' | 'failed' | 'refunded' | 'cancelled'
   paidDate?: Date
   externalReference?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 /**
@@ -130,7 +130,7 @@ export async function validateWebhookSignature(payload: string, signature: strin
  * Process webhook payload (stub implementation)
  * In Sprint 4, this will process real Fiserv webhook data
  */
-export async function processWebhookPayload(payload: any): Promise<PaymentStatusUpdate | null> {
+export async function processWebhookPayload(payload: Record<string, unknown>): Promise<PaymentStatusUpdate | null> {
   try {
     console.log('[STUB] Processing webhook payload:', payload)
     

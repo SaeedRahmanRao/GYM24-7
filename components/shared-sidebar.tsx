@@ -15,7 +15,17 @@ import { useEffect, useState } from "react"
 
 export function SharedSidebar() {
   const pathname = usePathname()
-  const [employeeSession, setEmployeeSession] = useState<any>(null)
+  const [employeeSession, setEmployeeSession] = useState<{
+    id: string
+    name: string
+    email: string
+    position: string
+    department: string
+    access_level: string
+    employee_type: string
+    username: string
+    last_login: string | null
+  } | null>(null)
 
   useEffect(() => {
     // Check for employee session in localStorage

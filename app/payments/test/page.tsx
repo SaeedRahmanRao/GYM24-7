@@ -12,7 +12,18 @@ import { CreditCard, ExternalLink, RefreshCw, AlertCircle, CheckCircle, Clock } 
 
 interface PaymentTestResult {
   success: boolean
-  data?: any
+  data?: {
+    payment_id: string
+    payment_reference: string
+    payment_link: string
+    fiserv_payment_id: string
+    amount: number
+    currency: string
+    due_date: string
+    expires_at: string
+    member_name: string
+    contract_type: string
+  }
   error?: string
 }
 
