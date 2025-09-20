@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       `)
       .eq("username", username)
       .eq("is_active", true)
-      .single() as { data: LoginCredentials | null; error: any }
+      .single() as { data: LoginCredentials | null; error: Error | null }
 
     if (error || !loginCredentials) {
       return NextResponse.json({ 
