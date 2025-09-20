@@ -1,6 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/server"
 
+interface SupabaseError extends Error {
+  code?: string
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -10,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .from("employees")
       .select("*")
       .eq("id", id)
-      .single()
+      .single() as { data: any | null; error: SupabaseError | null }
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -103,7 +107,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .update(employeeData)
       .eq("id", id)
       .select()
-      .single()
+      .single() as { data: any | null; error: SupabaseError | null }
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -132,7 +136,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { error } = await supabase
       .from("employees")
       .delete()
-      .eq("id", id)
+      .eq("id", id) as { error: SupabaseError | null }
 
     if (error) {
       if (error.code === "PGRST116") {

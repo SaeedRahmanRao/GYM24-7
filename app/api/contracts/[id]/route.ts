@@ -26,6 +26,10 @@ interface ContractWithMember {
   members: MemberData
 }
 
+interface SupabaseError extends Error {
+  code?: string
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -47,7 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         )
       `)
       .eq("id", id)
-      .single() as { data: ContractWithMember | null; error: Error | null }
+      .single() as { data: ContractWithMember | null; error: SupabaseError | null }
 
     if (error) {
       if (error.code === "PGRST116") {
