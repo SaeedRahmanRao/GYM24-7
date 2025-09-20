@@ -260,7 +260,7 @@ export default function PaymentTestPage() {
                     <div className="flex gap-2">
                       <Button 
                         size="sm" 
-                        onClick={() => testWebhook(results.data.payment_reference, "paid")}
+                        onClick={() => results.data && testWebhook(results.data.payment_reference, "paid")}
                         className="flex items-center gap-1"
                       >
                         <CheckCircle className="h-3 w-3" />
@@ -269,7 +269,7 @@ export default function PaymentTestPage() {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => testWebhook(results.data.payment_reference, "failed")}
+                        onClick={() => results.data && testWebhook(results.data.payment_reference, "failed")}
                         className="flex items-center gap-1"
                       >
                         <AlertCircle className="h-3 w-3" />
