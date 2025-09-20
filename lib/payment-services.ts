@@ -138,7 +138,7 @@ export async function processWebhookPayload(payload: Record<string, unknown>): P
     const paymentReference = payload.payment_reference || payload.reference
     const fiservPaymentId = payload.fiserv_payment_id || payload.payment_id
     const status = payload.status || payload.payment_status
-    const paidDate = payload.paid_date ? new Date(payload.paid_date) : new Date()
+    const paidDate = payload.paid_date && typeof payload.paid_date === 'string' ? new Date(payload.paid_date) : new Date()
     const externalReference = payload.external_reference || payload.transaction_id
 
     if (!paymentReference || !fiservPaymentId || !status) {
