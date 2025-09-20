@@ -5,23 +5,6 @@ interface SupabaseError extends Error {
   code?: string
 }
 
-interface Member {
-  id: string
-  monday_member_id: string
-  name: string
-  email: string
-  phone: string
-  address: string
-  city: string
-  state: string
-  zip_code: string
-  status: string
-  selected_plan: string
-  monthly_amount: number
-  created_at: string
-  updated_at: string
-}
-
 interface Contract {
   id: string
   contract_type: string
