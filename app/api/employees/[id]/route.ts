@@ -1,0 +1,154 @@
+import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/server"
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+
+    const { data: employee, error } = await supabase
+      .from("employees")
+      .select("*")
+      .eq("id", id)
+      .single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return NextResponse.json({ success: false, error: "Employee not found" }, { status: 404 })
+      }
+
+      console.error("[v0] Error fetching employee:", error)
+      return NextResponse.json({ success: false, error: "Failed to fetch employee" }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: employee,
+    })
+  } catch (error) {
+    console.error("[v0] Employee detail API error:", error)
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+    const body = await request.json()
+
+    const {
+      name,
+      position,
+      status,
+      hire_date,
+      paternal_last_name,
+      maternal_last_name,
+      first_name,
+      date_of_birth,
+      email,
+      primary_phone,
+      address_1,
+      city,
+      state,
+      zip_code,
+      secondary_phone,
+      emergency_contact_name,
+      emergency_contact_phone,
+      department,
+      employee_id,
+      salary,
+      access_level,
+      manager,
+      work_schedule,
+      skills,
+      certifications,
+      notes,
+      version
+    } = body
+
+    // Prepare the employee data with all fields
+    const employeeData = {
+      name: name || `${first_name} ${paternal_last_name}`.trim(),
+      position,
+      status,
+      hire_date: hire_date || null,
+      paternal_last_name,
+      maternal_last_name,
+      first_name,
+      date_of_birth: date_of_birth || null,
+      email,
+      primary_phone,
+      address_1,
+      city,
+      state,
+      zip_code,
+      secondary_phone,
+      emergency_contact_name,
+      emergency_contact_phone,
+      department,
+      employee_id,
+      salary: salary ? parseFloat(salary) : null,
+      access_level,
+      manager,
+      work_schedule,
+      skills,
+      certifications,
+      notes,
+      version
+    }
+
+    const { data: employee, error } = await supabase
+      .from("employees")
+      .update(employeeData)
+      .eq("id", id)
+      .select()
+      .single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return NextResponse.json({ success: false, error: "Employee not found" }, { status: 404 })
+      }
+
+      console.error("[v0] Error updating employee:", error)
+      return NextResponse.json({ success: false, error: "Failed to update employee" }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: employee,
+    })
+  } catch (error) {
+    console.error("[v0] Update employee API error:", error)
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from("employees")
+      .delete()
+      .eq("id", id)
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return NextResponse.json({ success: false, error: "Employee not found" }, { status: 404 })
+      }
+
+      console.error("[v0] Error deleting employee:", error)
+      return NextResponse.json({ success: false, error: "Failed to delete employee" }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Employee deleted successfully",
+    })
+  } catch (error) {
+    console.error("[v0] Delete employee API error:", error)
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+  }
+}
