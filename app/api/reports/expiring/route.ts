@@ -1,6 +1,29 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/server"
 
+interface MemberData {
+  id: string
+  name: string
+  email: string
+  primary_phone: string
+  status: string
+  city: string
+  state: string
+  selected_plan: string
+  monthly_amount: number
+}
+
+interface ContractWithMember {
+  id: string
+  contract_type: string
+  start_date: string
+  end_date: string
+  monthly_fee: number
+  status: string
+  created_at: string
+  members: MemberData
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -42,7 +65,7 @@ export async function GET(request: NextRequest) {
       .lte("end_date", endDate.toISOString().split('T')[0])
       .gte("end_date", new Date().toISOString().split('T')[0]) // Not expired yet
       .order("end_date", { ascending: true })
-      .limit(limit)
+      .limit(limit) as { data: ContractWithMember[] | null; error: Error | null }
 
     if (error) {
       console.error("[v0] Error fetching expiring members:", error)

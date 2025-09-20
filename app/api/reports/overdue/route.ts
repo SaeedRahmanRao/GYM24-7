@@ -1,6 +1,37 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/server"
 
+interface MemberData {
+  id: string
+  name: string
+  email: string
+  primary_phone: string
+  status: string
+  city: string
+  state: string
+  selected_plan: string
+}
+
+interface ContractData {
+  id: string
+  contract_type: string
+  monthly_fee: number
+  end_date: string
+}
+
+interface PaymentWithMemberAndContract {
+  id: string
+  amount: number
+  currency: string
+  payment_type: string
+  status: string
+  due_date: string
+  created_at: string
+  payment_reference: string
+  members: MemberData
+  contracts: ContractData
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -47,7 +78,7 @@ export async function GET(request: NextRequest) {
       .in("status", ["pending", "failed"])
       .lte("due_date", new Date().toISOString().split('T')[0])
       .order("due_date", { ascending: true })
-      .limit(limit)
+      .limit(limit) as { data: PaymentWithMemberAndContract[] | null; error: Error | null }
 
     if (error) {
       console.error("[v0] Error fetching overdue payments:", error)
