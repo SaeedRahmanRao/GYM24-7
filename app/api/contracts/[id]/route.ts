@@ -1,6 +1,31 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/server"
 
+interface MemberData {
+  id: string
+  monday_member_id: string
+  name: string
+  email: string
+  phone: string
+  status: string
+  created_at: string
+  updated_at: string
+}
+
+interface ContractWithMember {
+  id: string
+  monday_contract_id: string
+  member_id: string
+  contract_type: string
+  start_date: string
+  end_date: string
+  monthly_fee: number
+  status: string
+  created_at: string
+  updated_at: string
+  members: MemberData
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -22,7 +47,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         )
       `)
       .eq("id", id)
-      .single()
+      .single() as { data: ContractWithMember | null; error: Error | null }
 
     if (error) {
       if (error.code === "PGRST116") {

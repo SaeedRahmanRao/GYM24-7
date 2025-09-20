@@ -2,6 +2,36 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/server"
 import { createPaymentLink, type PaymentLinkRequest } from "@/lib/payment-services"
 
+interface MemberData {
+  id: string
+  name: string
+  email: string
+}
+
+interface ContractData {
+  id: string
+  contract_type: string
+  monthly_fee: number
+}
+
+interface PaymentWithRelations {
+  id: string
+  member_id: string
+  contract_id: string
+  amount: number
+  currency: string
+  payment_type: string
+  status: string
+  payment_reference: string
+  payment_link: string
+  fiserv_payment_id: string
+  due_date: string
+  paid_date: string
+  created_at: string
+  members: MemberData
+  contracts: ContractData
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -198,7 +228,7 @@ export async function GET(request: NextRequest) {
       query = query.eq("payment_type", payment_type)
     }
 
-    const { data: payments, error } = await query.order("created_at", { ascending: false })
+    const { data: payments, error } = await query.order("created_at", { ascending: false }) as { data: PaymentWithRelations[] | null; error: Error | null }
 
     if (error) {
       console.error("[v0] Error fetching payments:", error)

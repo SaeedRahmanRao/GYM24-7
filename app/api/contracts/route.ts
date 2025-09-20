@@ -1,6 +1,27 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/server"
 
+interface MemberData {
+  id: string
+  name: string
+  email: string
+  status: string
+}
+
+interface ContractWithMember {
+  id: string
+  monday_contract_id: string
+  member_id: string
+  contract_type: string
+  start_date: string
+  end_date: string
+  monthly_fee: number
+  status: string
+  created_at: string
+  updated_at: string
+  members: MemberData
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -44,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     query = query.range(offset, offset + limit - 1)
 
-    const { data: contracts, error, count } = await query
+    const { data: contracts, error, count } = await query as { data: ContractWithMember[] | null; error: Error | null; count: number | null }
 
     if (error) {
       console.error("[v0] Error fetching contracts:", error)
