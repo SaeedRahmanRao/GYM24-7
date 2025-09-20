@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       contractId: contract_id,
       amount: parseFloat(amount),
       currency,
-      paymentType: payment_type as any,
+      paymentType: payment_type as 'membership' | 'renewal' | 'late_fee' | 'penalty' | 'other',
       description: description || `Payment for ${contract.contract_type} membership`,
       dueDate: due_date ? new Date(due_date) : undefined
     }

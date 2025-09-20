@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse the payload
-    let payload: any
+    let payload: Record<string, unknown>
     try {
       payload = JSON.parse(body)
     } catch (error) {
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update payment status
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status: paymentUpdate.status,
       fiserv_payment_id: paymentUpdate.fiservPaymentId,
       metadata: {

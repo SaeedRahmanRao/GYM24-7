@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AuthenticatedLayout } from "@/components/authenticated-layout"
-import { Plus, User, Phone, MapPin, FileText } from "lucide-react"
+import { Plus, User, Phone, MapPin, FileText, CreditCard } from "lucide-react"
 import Link from "next/link"
 
 export default function AddMemberPage() {

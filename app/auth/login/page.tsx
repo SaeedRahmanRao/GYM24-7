@@ -71,7 +71,7 @@ export default function Page() {
       } else {
         setEmployeeError(result.error || "Login failed")
       }
-    } catch (error) {
+    } catch {
       setEmployeeError("An error occurred during login")
     } finally {
       setIsEmployeeLoading(false)
