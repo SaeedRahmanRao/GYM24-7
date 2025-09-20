@@ -5,6 +5,52 @@ interface SupabaseError extends Error {
   code?: string
 }
 
+interface Member {
+  id: string
+  monday_member_id: string
+  name: string
+  email: string
+  phone: string
+  address: string
+  city: string
+  state: string
+  zip_code: string
+  status: string
+  selected_plan: string
+  monthly_amount: number
+  created_at: string
+  updated_at: string
+}
+
+interface Contract {
+  id: string
+  contract_type: string
+  start_date: string
+  end_date: string
+  monthly_fee: number
+  status: string
+  created_at: string
+  updated_at: string
+}
+
+interface MemberWithContracts {
+  id: string
+  monday_member_id: string
+  name: string
+  email: string
+  phone: string
+  address: string
+  city: string
+  state: string
+  zip_code: string
+  status: string
+  selected_plan: string
+  monthly_amount: number
+  created_at: string
+  updated_at: string
+  contracts: Contract[]
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -27,7 +73,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         )
       `)
       .eq("id", id)
-      .single() as { data: any | null; error: SupabaseError | null }
+      .single() as { data: MemberWithContracts | null; error: SupabaseError | null }
 
     if (error) {
       if (error.code === "PGRST116") {

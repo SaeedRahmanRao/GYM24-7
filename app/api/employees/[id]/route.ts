@@ -5,6 +5,39 @@ interface SupabaseError extends Error {
   code?: string
 }
 
+interface Employee {
+  id: string
+  name: string
+  position: string
+  status: string
+  hire_date: string
+  paternal_last_name: string
+  maternal_last_name: string
+  first_name: string
+  date_of_birth: string
+  email: string
+  primary_phone: string
+  address_1: string
+  city: string
+  state: string
+  zip_code: string
+  secondary_phone: string
+  emergency_contact_name: string
+  emergency_contact_phone: string
+  department: string
+  employee_id: string
+  salary: number
+  access_level: string
+  manager: string
+  work_schedule: string
+  skills: string
+  certifications: string
+  notes: string
+  version: string
+  created_at: string
+  updated_at: string
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -14,7 +47,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .from("employees")
       .select("*")
       .eq("id", id)
-      .single() as { data: any | null; error: SupabaseError | null }
+      .single() as { data: Employee | null; error: SupabaseError | null }
 
     if (error) {
       if (error.code === "PGRST116") {
@@ -107,7 +140,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       .update(employeeData)
       .eq("id", id)
       .select()
-      .single() as { data: any | null; error: SupabaseError | null }
+      .single() as { data: Employee | null; error: SupabaseError | null }
 
     if (error) {
       if (error.code === "PGRST116") {
